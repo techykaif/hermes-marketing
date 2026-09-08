@@ -6,21 +6,41 @@ Hermes supports scripted one-shot execution with `hermes -z`, which is the execu
 
 ## Required repository configuration
 
-### Secret
+### Inference secrets
 
-Add this repository secret:
+Add these repository secrets when available:
+
+`CEREBRAS_API_KEY`
+
+`GROQ_API_KEY`
 
 `OPENROUTER_API_KEY`
 
-The workflow does not print the secret and Hermes secret redaction remains enabled.
+The workflows use **Cerebras first**, **Groq second**, and **OpenRouter as the last-resort fallback**. This avoids making the intelligence loop depend on OpenRouter's small free-model request pool. Secrets are never printed and Hermes secret redaction remains enabled.
 
-### Repository variable
+You do not need to configure `HERMES_INFERENCE_MODEL` anymore; the workflow pins the provider-specific agent model so the fallback models cannot accidentally receive an incompatible model ID.
 
-Add:
+### Product repository access
 
-`HERMES_INFERENCE_MODEL`
+`PRODUCT_REPO_READ_TOKEN` remains required for read-only cloning of the private Keanso and AI-Bid repositories.
 
-Set it to the OpenRouter model identifier you want Hermes to use. Keep this as a repository variable rather than hard-coding a model into the workflow so the model can be changed without a code commit.
+## Provider/model policy
+
+Primary:
+
+- Cerebras `gpt-oss-120b`
+
+Fallback:
+
+- Groq `openai/gpt-oss-120b`
+
+Last resort:
+
+- OpenRouter `openrouter/free`
+
+The Hermes CI profile is deliberately bounded to reduce unnecessary agent turns: 12 turns for daily runs and 20 turns for Sunday intelligence. The provider fallback retries the same planning task only when the previous provider fails; a successful provider run is not duplicated.
+
+Cerebras documents GPT-OSS 120B as supporting function calling, structured outputs, tools, reasoning, and agentic research workflows. Groq currently lists GPT-OSS 120B at 30 RPM and 1,000 requests/day on its free plan. Free-tier limits can change, so the workflow treats provider availability as runtime state rather than assuming a permanent quota. urlCerebras GPT-OSS 120B model documentationhttps://inference-docs.cerebras.ai/api-reference/models/public-models urlGroq rate limitshttps://console.groq.com/docs/rate-limits
 
 ## Workflows
 
