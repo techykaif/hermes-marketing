@@ -1,0 +1,124 @@
+name: Hermes Sunday Intelligence
+
+on:
+  schedule:
+    # 10:30 Asia/Kolkata = 05:00 UTC.
+    - cron: '0 5 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hermes-sunday
+  cancel-in-progress: false
+
+jobs:
+  weekly-intelligence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      HERMES_INFERENCE_MODEL: ${{ vars.HERMES_INFERENCE_MODEL }}
+      HERMES_WRITE_SAFE_ROOT: ${{ github.workspace }}
+      HERMES_REDACT_SECRETS: 'true'
+    steps:
+      - name: Checkout marketing workspace
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify model credential
+        run: |
+          if [ -z "$OPENROUTER_API_KEY" ]; then
+            echo "OPENROUTER_API_KEY is not configured in repository secrets."
+            exit 1
+          fi
+
+      - name: Clone current product repositories
+        run: |
+          git clone --depth 1 https://github.com/techykaif/Keanso.git /tmp/keanso
+          git clone --depth 1 https://github.com/techykaif/aibid.git /tmp/aibid
+
+      - name: Install Hermes Agent
+        run: |
+          curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
+          source "$HOME/.bashrc" || true
+          command -v hermes
+          hermes --version
+
+      - name: Run Sunday intelligence pass
+        run: |
+          source "$HOME/.bashrc" || true
+          export HERMES_WRITE_SAFE_ROOT="$GITHUB_WORKSPACE"
+          MODEL_ARGS=()
+          if [ -n "$HERMES_INFERENCE_MODEL" ]; then
+            MODEL_ARGS+=(--model "$HERMES_INFERENCE_MODEL")
+          fi
+          hermes --provider openrouter "${MODEL_ARGS[@]}" -z "$(cat <<'PROMPT'
+You are the Sunday intelligence operator for the autonomous marketing workspace.
+
+MODE: SUNDAY INTELLIGENCE ONLY
+
+Product repositories:
+- /tmp/keanso
+- /tmp/aibid
+
+Read before research:
+- hermes/policies/marketing-policy.md
+- hermes/policies/sunday-mode.md
+- hermes/skills/weekly-research/SKILL.md
+- hermes/research/SOURCES.md
+- brands/keanso/product.md
+- brands/keanso/audience.md
+- brands/ai-bid/product.md
+- brands/ai-bid/audience.md
+
+Perform the full weekly intelligence cycle:
+
+1. Verify the current public state of Keanso and AI-Bid.
+2. Inspect current repository implementation and relevant implementation-status documents.
+3. Detect meaningful product changes since previous reports.
+4. Research competitors and market changes relevant to each product.
+5. Research current customer pain points and community conversations.
+6. Review the previous intelligence and execution reports.
+7. Identify what worked, what failed, and what remains unknown. Do not invent analytics when no analytics source is configured.
+8. Check the health of this marketing repository and scheduled automation configuration.
+9. Produce a prioritized strategy for the coming week.
+10. Record evidence, source URLs, timestamps, confidence, and whether each conclusion is directly verified or inferred.
+
+HARD SUNDAY RULE:
+Do not publish or schedule social posts. Do not comment, reply, DM, like, follow, submit directories, contact prospects, launch ads, or spend money. Sunday is research, verification, analytics processing, maintenance, and planning only.
+
+Write these outputs:
+- reports/latest/keanso.md
+- reports/latest/ai-bid.md
+- reports/latest/market.md
+- reports/latest/strategy.md
+- reports/latest/system.md
+- reports/weekly/YYYY-MM-DD.md
+- state/latest.json
+
+Keep the reports concise and decision-oriented. Preserve historical reports. If a source is unavailable, record the failure instead of guessing.
+PROMPT
+)" --usage-file /tmp/hermes-usage.json
+
+      - name: Save usage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hermes-sunday-usage
+          path: /tmp/hermes-usage.json
+          if-no-files-found: ignore
+
+      - name: Commit weekly intelligence
+        run: |
+          git config user.name "hermes-marketing[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports state
+          if git diff --cached --quiet; then
+            echo "No intelligence changes to commit."
+            exit 0
+          fi
+          git commit -m "chore: update weekly marketing intelligence"
+          git push
