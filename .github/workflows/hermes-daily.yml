@@ -15,6 +15,7 @@ concurrency:
 
 env:
   OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+  PRODUCT_REPO_READ_TOKEN: ${{ secrets.PRODUCT_REPO_READ_TOKEN }}
   HERMES_INFERENCE_MODEL: ${{ vars.HERMES_INFERENCE_MODEL }}
   HERMES_WRITE_SAFE_ROOT: ${{ github.workspace }}
   HERMES_REDACT_SECRETS: 'true'
@@ -68,6 +69,10 @@ jobs:
             echo "OPENROUTER_API_KEY is not configured in repository secrets."
             exit 1
           fi
+          if [ -z "$PRODUCT_REPO_READ_TOKEN" ]; then
+            echo "PRODUCT_REPO_READ_TOKEN is not configured in repository secrets."
+            exit 1
+          fi
           if [ -z "$HERMES_INFERENCE_MODEL" ]; then
             echo "HERMES_INFERENCE_MODEL is not configured in repository variables."
             echo "Set it to an OpenRouter model identifier before running Hermes."
@@ -75,9 +80,11 @@ jobs:
           fi
 
       - name: Clone current product repositories
+        env:
+          GH_TOKEN: ${{ secrets.PRODUCT_REPO_READ_TOKEN }}
         run: |
-          git clone --depth 1 https://github.com/techykaif/Keanso.git /tmp/keanso
-          git clone --depth 1 https://github.com/techykaif/aibid.git /tmp/aibid
+          gh repo clone techykaif/Keanso /tmp/keanso -- --depth 1
+          gh repo clone techykaif/aibid /tmp/aibid -- --depth 1
 
       - name: Install Hermes Agent
         run: |
