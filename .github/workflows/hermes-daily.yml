@@ -131,6 +131,27 @@ jobs:
           source "$HOME/.bashrc" || true
           hermes -z "$HERMES_PROMPT" --provider openrouter --model "$HERMES_INFERENCE_MODEL" --usage-file /tmp/hermes-usage.json
 
+      - name: Validate Hermes result
+        run: |
+          if [ ! -s /tmp/hermes-usage.json ]; then
+            echo "Hermes did not produce a usage report."
+            exit 1
+          fi
+          cat /tmp/hermes-usage.json
+          if jq -e '.failed == true or .completed != true' /tmp/hermes-usage.json >/dev/null; then
+            echo "Hermes execution did not complete successfully."
+            exit 1
+          fi
+          report="reports/daily/$(date -u +%F).md"
+          if [ ! -s "$report" ]; then
+            echo "Expected daily report is missing: $report"
+            exit 1
+          fi
+          if [ ! -s state/latest.json ]; then
+            echo "Expected state file is missing: state/latest.json"
+            exit 1
+          fi
+
       - name: Save usage report
         if: always()
         uses: actions/upload-artifact@v4
