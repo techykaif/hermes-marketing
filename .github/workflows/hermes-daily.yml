@@ -14,9 +14,10 @@ concurrency:
   cancel-in-progress: false
 
 env:
+  CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+  GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
   OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
   PRODUCT_REPO_READ_TOKEN: ${{ secrets.PRODUCT_REPO_READ_TOKEN }}
-  HERMES_INFERENCE_MODEL: ${{ vars.HERMES_INFERENCE_MODEL }}
   HERMES_WRITE_SAFE_ROOT: ${{ github.workspace }}
   HERMES_REDACT_SECRETS: 'true'
   HERMES_PROMPT: |
@@ -71,17 +72,12 @@ jobs:
 
       - name: Verify required configuration
         run: |
-          if [ -z "$OPENROUTER_API_KEY" ]; then
-            echo "OPENROUTER_API_KEY is not configured in repository secrets."
-            exit 1
-          fi
           if [ -z "$PRODUCT_REPO_READ_TOKEN" ]; then
             echo "PRODUCT_REPO_READ_TOKEN is not configured in repository secrets."
             exit 1
           fi
-          if [ -z "$HERMES_INFERENCE_MODEL" ]; then
-            echo "HERMES_INFERENCE_MODEL is not configured in repository variables."
-            echo "Set it to an OpenRouter model identifier before running Hermes."
+          if [ -z "$CEREBRAS_API_KEY" ] && [ -z "$GROQ_API_KEY" ] && [ -z "$OPENROUTER_API_KEY" ]; then
+            echo "No inference provider key is configured. Add CEREBRAS_API_KEY or GROQ_API_KEY (OpenRouter is a last-resort fallback)."
             exit 1
           fi
 
@@ -103,7 +99,7 @@ jobs:
         run: |
           cat > "$HOME/.hermes/config.yaml" <<'YAML'
           agent:
-            max_turns: 24
+            max_turns: 12
             run_budget_seconds: 1200
             disabled_toolsets:
               - browser
@@ -126,10 +122,70 @@ jobs:
           YAML
           hermes config check
 
-      - name: Run bounded daily intelligence
+      - name: Run daily intelligence with provider fallback
         run: |
+          set +e
           source "$HOME/.bashrc" || true
-          hermes -z "$HERMES_PROMPT" --provider openrouter --model "$HERMES_INFERENCE_MODEL" --usage-file /tmp/hermes-usage.json
+          rm -f /tmp/hermes-usage.json /tmp/hermes-cerebras-usage.json /tmp/hermes-groq-usage.json /tmp/hermes-openrouter-usage.json
+
+          run_provider() {
+            local provider="$1"
+            local model="$2"
+            local base_url="$3"
+            local usage_file="$4"
+
+            cat > "$HOME/.hermes/config.yaml" <<YAML
+          agent:
+            max_turns: 12
+            run_budget_seconds: 1200
+          model:
+            provider: custom
+            default: $model
+            base_url: $base_url
+          YAML
+            hermes config check
+            hermes -z "$HERMES_PROMPT" --usage-file "$usage_file"
+            return $?
+          }
+
+          status=1
+          if [ -n "$CEREBRAS_API_KEY" ]; then
+            echo "Trying primary inference provider: Cerebras / gpt-oss-120b"
+            run_provider cerebras gpt-oss-120b https://api.cerebras.ai/v1 /tmp/hermes-cerebras-usage.json
+            status=$?
+            if [ $status -eq 0 ] && jq -e '.failed != true and .completed == true' /tmp/hermes-cerebras-usage.json >/dev/null 2>&1; then
+              cp /tmp/hermes-cerebras-usage.json /tmp/hermes-usage.json
+              exit 0
+            fi
+            echo "Cerebras attempt failed; trying Groq if configured."
+          fi
+
+          if [ -n "$GROQ_API_KEY" ]; then
+            echo "Trying fallback inference provider: Groq / openai/gpt-oss-120b"
+            run_provider groq openai/gpt-oss-120b https://api.groq.com/openai/v1 /tmp/hermes-groq-usage.json
+            status=$?
+            if [ $status -eq 0 ] && jq -e '.failed != true and .completed == true' /tmp/hermes-groq-usage.json >/dev/null 2>&1; then
+              cp /tmp/hermes-groq-usage.json /tmp/hermes-usage.json
+              exit 0
+            fi
+            echo "Groq attempt failed; trying OpenRouter only if configured."
+          fi
+
+          if [ -n "$OPENROUTER_API_KEY" ]; then
+            echo "Trying last-resort inference provider: OpenRouter"
+            cat > "$HOME/.hermes/config.yaml" <<'YAML'
+          agent:
+            max_turns: 12
+            run_budget_seconds: 1200
+          YAML
+            hermes -z "$HERMES_PROMPT" --provider openrouter --model openrouter/free --usage-file /tmp/hermes-openrouter-usage.json
+            status=$?
+            if [ -f /tmp/hermes-openrouter-usage.json ]; then
+              cp /tmp/hermes-openrouter-usage.json /tmp/hermes-usage.json
+            fi
+          fi
+
+          exit $status
 
       - name: Validate Hermes result
         run: |
@@ -152,12 +208,12 @@ jobs:
             exit 1
           fi
 
-      - name: Save usage report
+      - name: Save usage reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: hermes-daily-usage
-          path: /tmp/hermes-usage.json
+          path: /tmp/hermes-*-usage.json
           if-no-files-found: ignore
 
       - name: Commit intelligence state
