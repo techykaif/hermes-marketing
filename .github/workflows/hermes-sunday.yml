@@ -55,7 +55,7 @@ jobs:
           if [ -n "$HERMES_INFERENCE_MODEL" ]; then
             MODEL_ARGS+=(--model "$HERMES_INFERENCE_MODEL")
           fi
-          hermes --provider openrouter "${MODEL_ARGS[@]}" -z "$(cat <<'PROMPT'
+          hermes "${MODEL_ARGS[@]}" --provider openrouter -z "$(cat <<'PROMPT'
 You are the Sunday intelligence operator for the autonomous marketing workspace.
 
 MODE: SUNDAY INTELLIGENCE ONLY
