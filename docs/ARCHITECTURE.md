@@ -49,20 +49,26 @@ Prioritized experiments
        ↓
 Content / campaign briefs
        ↓
-Execution
+Drafts
        ↓
-Measurement
+Approval boundary
+       ↓
+Postiz / approved channel integration
+       ↓
+Measurement + attribution
        ↓
 Learning
 ```
 
 ## Execution boundary
 
-Research and planning may be autonomous. Publishing can be automated only through explicitly configured integrations and policies. Financial commitments, irreversible destructive actions, credential changes, and high-risk external communications require a separate authorization boundary.
+Research and planning are autonomous. External publishing is isolated behind a dedicated publishing boundary. The research workflows do not receive publishing credentials. Financial commitments, irreversible destructive actions, credential changes, and high-risk external communications require a separate authorization boundary.
+
+Postiz is the initial publishing adapter. Its API can list connected integrations and create/schedule posts, but Hermes remains responsible for product truth, channel policy, approval state, duplication checks, attribution, and audit records.
 
 ## Scheduling
 
-The first deployment target is scheduled execution. A persistent worker can be introduced later without changing the knowledge or strategy model.
+The first deployment target is scheduled execution on GitHub Actions. Hermes installation is cached between hosted-runner jobs while configuration and secrets are recreated per run. A persistent worker/VPS can be introduced later without changing the knowledge or strategy model.
 
 ## Repository layout
 
@@ -83,8 +89,24 @@ hermes/
   workflows/
 
 integrations/
-
-scheduler/
+  postiz/
 
 docs/
+  ANALYTICS.md
+  ATTRIBUTION.md
+  SETUP.md
+
+reports/
+  drafts/
+  daily/
+  weekly/
+  latest/
+
+state/
+  audit/
+  publishing.json
 ```
+
+## Safety model
+
+Every external action is classified as R0-R4 in `hermes/policies/channel-policy.md`. The default state is draft-only. Publishing credentials are never exposed to research jobs, and all external actions require an audit record.
