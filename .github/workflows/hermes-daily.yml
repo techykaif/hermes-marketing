@@ -13,25 +13,31 @@ concurrency:
   group: hermes-daily
   cancel-in-progress: false
 
+env:
+  OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+  HERMES_INFERENCE_MODEL: ${{ vars.HERMES_INFERENCE_MODEL }}
+  HERMES_WRITE_SAFE_ROOT: ${{ github.workspace }}
+  HERMES_REDACT_SECRETS: 'true'
+
 jobs:
   research-and-plan:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    env:
-      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-      HERMES_INFERENCE_MODEL: ${{ vars.HERMES_INFERENCE_MODEL }}
-      HERMES_WRITE_SAFE_ROOT: ${{ github.workspace }}
-      HERMES_REDACT_SECRETS: 'true'
     steps:
       - name: Checkout marketing workspace
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Verify model credential
+      - name: Verify required configuration
         run: |
           if [ -z "$OPENROUTER_API_KEY" ]; then
             echo "OPENROUTER_API_KEY is not configured in repository secrets."
+            exit 1
+          fi
+          if [ -z "$HERMES_INFERENCE_MODEL" ]; then
+            echo "HERMES_INFERENCE_MODEL is not configured in repository variables."
+            echo "Set it to an OpenRouter model identifier before running Hermes."
             exit 1
           fi
 
@@ -50,12 +56,7 @@ jobs:
       - name: Run bounded daily intelligence
         run: |
           source "$HOME/.bashrc" || true
-          export HERMES_WRITE_SAFE_ROOT="$GITHUB_WORKSPACE"
-          MODEL_ARGS=()
-          if [ -n "$HERMES_INFERENCE_MODEL" ]; then
-            MODEL_ARGS+=(--model "$HERMES_INFERENCE_MODEL")
-          fi
-          hermes "${MODEL_ARGS[@]}" --provider openrouter -z "$(cat <<'PROMPT'
+          hermes -z "$(cat <<'PROMPT'
 You are the autonomous marketing intelligence operator for the repository you are currently working in.
 
 MODE: DAILY
@@ -89,7 +90,7 @@ Task:
 
 Keep the run bounded and useful. Do not spend time on generic SEO content or low-value research. If no safe action is justified, write NO_EXECUTABLE_ACTIONS with the reason.
 PROMPT
-)" --usage-file /tmp/hermes-usage.json
+)" --provider openrouter --model "$HERMES_INFERENCE_MODEL" --usage-file /tmp/hermes-usage.json
 
       - name: Save usage report
         if: always()
