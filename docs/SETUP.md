@@ -10,15 +10,15 @@ Hermes supports scripted one-shot execution with `hermes -z`, which is the execu
 
 Add these repository secrets when available:
 
-`GROQ_API_KEY` — **recommended and primary**
-
-`CEREBRAS_API_KEY` — optional secondary provider
+`CEREBRAS_API_KEY` — primary inference provider
 
 `OPENROUTER_API_KEY` — optional last-resort fallback
 
-The workflows use **Groq first**, **Cerebras second**, and **OpenRouter last**. This is intentional: Groq currently publishes a free-plan allowance of 1,000 requests/day for GPT-OSS 120B, while Cerebras currently describes its free access as a time/credit-bounded trial rather than a permanently renewing free tier. urlGroq rate limitshttps://console.groq.com/docs/rate-limits urlCerebras rate limitshttps://inference-docs.cerebras.ai/support/rate-limits
+**Groq is intentionally not used by this repository.** It is already used by other systems and is not part of this marketing worker's quota budget.
 
-You do not need to configure `HERMES_INFERENCE_MODEL` anymore; the workflow pins the provider-specific agent model so fallback providers cannot accidentally receive an incompatible model ID.
+The workflows use Hermes' native `fallback_providers` chain: **Cerebras first**, **OpenCode Free second**, and **OpenRouter Free last**. OpenCode Free is keyless and requires no account or credential. Hermes can automatically switch providers when the primary model encounters supported rate-limit, server, auth, connection, or invalid-response failures. urlHermes fallback provider documentationhttps://hermes-agent.nousresearch.com/docs/user-guide/features/fallback-providers urlHermes provider documentationhttps://hermes-agent.nousresearch.com/docs/integrations/providers
+
+You do not need to configure `HERMES_INFERENCE_MODEL` anymore; the workflow pins the primary model and the fallback chain explicitly.
 
 ### Product repository access
 
@@ -28,19 +28,19 @@ You do not need to configure `HERMES_INFERENCE_MODEL` anymore; the workflow pins
 
 Primary:
 
-- Groq `openai/gpt-oss-120b`
-
-Secondary:
-
 - Cerebras `gpt-oss-120b`
 
-Last resort:
+Fallback 1:
+
+- OpenCode Free — `auto` (Hermes uses OpenCode's live free-model catalog)
+
+Fallback 2:
 
 - OpenRouter `openrouter/free`
 
-Cerebras documents GPT-OSS 120B as supporting function calling, structured outputs, tools, reasoning, and agentic research workflows. Groq currently lists GPT-OSS 120B at 30 RPM and 1,000 requests/day on its free plan. urlCerebras GPT-OSS 120B model documentationhttps://inference-docs.cerebras.ai/api-reference/models/public-models urlGroq rate limitshttps://console.groq.com/docs/rate-limits
+Cerebras documents GPT-OSS 120B as supporting function calling, structured outputs, tools, reasoning, and agentic research workflows. OpenCode Free is keyless and its model catalog is refreshed dynamically by Hermes, allowing free-model promotions to rotate without a workflow code change. urlCerebras GPT-OSS 120B model documentationhttps://inference-docs.cerebras.ai/api-reference/models/public-models urlHermes provider documentationhttps://hermes-agent.nousresearch.com/docs/integrations/providers
 
-The Hermes CI profile is deliberately bounded to reduce unnecessary agent turns: 12 turns for daily runs and 20 turns for Sunday intelligence. The provider fallback retries the same planning task only when the previous provider fails; a successful provider run is not duplicated.
+The Hermes CI profile is deliberately bounded to reduce unnecessary agent turns: 12 turns for daily runs and 20 turns for Sunday intelligence. Native provider fallback preserves the conversation and continues from the failed turn instead of restarting the entire planning task.
 
 ## Workflows
 
