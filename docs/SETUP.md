@@ -10,15 +10,15 @@ Hermes supports scripted one-shot execution with `hermes -z`, which is the execu
 
 Add these repository secrets when available:
 
-`CEREBRAS_API_KEY`
+`GROQ_API_KEY` — **recommended and primary**
 
-`GROQ_API_KEY`
+`CEREBRAS_API_KEY` — optional secondary provider
 
-`OPENROUTER_API_KEY`
+`OPENROUTER_API_KEY` — optional last-resort fallback
 
-The workflows use **Cerebras first**, **Groq second**, and **OpenRouter as the last-resort fallback**. This avoids making the intelligence loop depend on OpenRouter's small free-model request pool. Secrets are never printed and Hermes secret redaction remains enabled.
+The workflows use **Groq first**, **Cerebras second**, and **OpenRouter last**. This is intentional: Groq currently publishes a free-plan allowance of 1,000 requests/day for GPT-OSS 120B, while Cerebras currently describes its free access as a time/credit-bounded trial rather than a permanently renewing free tier. urlGroq rate limitshttps://console.groq.com/docs/rate-limits urlCerebras rate limitshttps://inference-docs.cerebras.ai/support/rate-limits
 
-You do not need to configure `HERMES_INFERENCE_MODEL` anymore; the workflow pins the provider-specific agent model so the fallback models cannot accidentally receive an incompatible model ID.
+You do not need to configure `HERMES_INFERENCE_MODEL` anymore; the workflow pins the provider-specific agent model so fallback providers cannot accidentally receive an incompatible model ID.
 
 ### Product repository access
 
@@ -28,19 +28,19 @@ You do not need to configure `HERMES_INFERENCE_MODEL` anymore; the workflow pins
 
 Primary:
 
-- Cerebras `gpt-oss-120b`
-
-Fallback:
-
 - Groq `openai/gpt-oss-120b`
+
+Secondary:
+
+- Cerebras `gpt-oss-120b`
 
 Last resort:
 
 - OpenRouter `openrouter/free`
 
-The Hermes CI profile is deliberately bounded to reduce unnecessary agent turns: 12 turns for daily runs and 20 turns for Sunday intelligence. The provider fallback retries the same planning task only when the previous provider fails; a successful provider run is not duplicated.
+Cerebras documents GPT-OSS 120B as supporting function calling, structured outputs, tools, reasoning, and agentic research workflows. Groq currently lists GPT-OSS 120B at 30 RPM and 1,000 requests/day on its free plan. urlCerebras GPT-OSS 120B model documentationhttps://inference-docs.cerebras.ai/api-reference/models/public-models urlGroq rate limitshttps://console.groq.com/docs/rate-limits
 
-Cerebras documents GPT-OSS 120B as supporting function calling, structured outputs, tools, reasoning, and agentic research workflows. Groq currently lists GPT-OSS 120B at 30 RPM and 1,000 requests/day on its free plan. Free-tier limits can change, so the workflow treats provider availability as runtime state rather than assuming a permanent quota. urlCerebras GPT-OSS 120B model documentationhttps://inference-docs.cerebras.ai/api-reference/models/public-models urlGroq rate limitshttps://console.groq.com/docs/rate-limits
+The Hermes CI profile is deliberately bounded to reduce unnecessary agent turns: 12 turns for daily runs and 20 turns for Sunday intelligence. The provider fallback retries the same planning task only when the previous provider fails; a successful provider run is not duplicated.
 
 ## Workflows
 
