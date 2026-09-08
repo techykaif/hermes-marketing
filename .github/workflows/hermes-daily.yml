@@ -14,8 +14,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
   GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+  CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
   OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
   PRODUCT_REPO_READ_TOKEN: ${{ secrets.PRODUCT_REPO_READ_TOKEN }}
   HERMES_WRITE_SAFE_ROOT: ${{ github.workspace }}
@@ -76,8 +76,8 @@ jobs:
             echo "PRODUCT_REPO_READ_TOKEN is not configured in repository secrets."
             exit 1
           fi
-          if [ -z "$CEREBRAS_API_KEY" ] && [ -z "$GROQ_API_KEY" ] && [ -z "$OPENROUTER_API_KEY" ]; then
-            echo "No inference provider key is configured. Add CEREBRAS_API_KEY or GROQ_API_KEY (OpenRouter is a last-resort fallback)."
+          if [ -z "$GROQ_API_KEY" ] && [ -z "$CEREBRAS_API_KEY" ] && [ -z "$OPENROUTER_API_KEY" ]; then
+            echo "No inference provider key is configured. Add GROQ_API_KEY (recommended), CEREBRAS_API_KEY, or keep OpenRouter as last resort."
             exit 1
           fi
 
@@ -126,13 +126,12 @@ jobs:
         run: |
           set +e
           source "$HOME/.bashrc" || true
-          rm -f /tmp/hermes-usage.json /tmp/hermes-cerebras-usage.json /tmp/hermes-groq-usage.json /tmp/hermes-openrouter-usage.json
+          rm -f /tmp/hermes-usage.json /tmp/hermes-groq-usage.json /tmp/hermes-cerebras-usage.json /tmp/hermes-openrouter-usage.json
 
           run_provider() {
-            local provider="$1"
-            local model="$2"
-            local base_url="$3"
-            local usage_file="$4"
+            local model="$1"
+            local base_url="$2"
+            local usage_file="$3"
 
             cat > "$HOME/.hermes/config.yaml" <<YAML
           agent:
@@ -149,26 +148,26 @@ jobs:
           }
 
           status=1
-          if [ -n "$CEREBRAS_API_KEY" ]; then
-            echo "Trying primary inference provider: Cerebras / gpt-oss-120b"
-            run_provider cerebras gpt-oss-120b https://api.cerebras.ai/v1 /tmp/hermes-cerebras-usage.json
-            status=$?
-            if [ $status -eq 0 ] && jq -e '.failed != true and .completed == true' /tmp/hermes-cerebras-usage.json >/dev/null 2>&1; then
-              cp /tmp/hermes-cerebras-usage.json /tmp/hermes-usage.json
-              exit 0
-            fi
-            echo "Cerebras attempt failed; trying Groq if configured."
-          fi
-
           if [ -n "$GROQ_API_KEY" ]; then
-            echo "Trying fallback inference provider: Groq / openai/gpt-oss-120b"
-            run_provider groq openai/gpt-oss-120b https://api.groq.com/openai/v1 /tmp/hermes-groq-usage.json
+            echo "Trying primary inference provider: Groq / openai/gpt-oss-120b"
+            run_provider openai/gpt-oss-120b https://api.groq.com/openai/v1 /tmp/hermes-groq-usage.json
             status=$?
             if [ $status -eq 0 ] && jq -e '.failed != true and .completed == true' /tmp/hermes-groq-usage.json >/dev/null 2>&1; then
               cp /tmp/hermes-groq-usage.json /tmp/hermes-usage.json
               exit 0
             fi
-            echo "Groq attempt failed; trying OpenRouter only if configured."
+            echo "Groq attempt failed; trying Cerebras if configured."
+          fi
+
+          if [ -n "$CEREBRAS_API_KEY" ]; then
+            echo "Trying secondary inference provider: Cerebras / gpt-oss-120b"
+            run_provider gpt-oss-120b https://api.cerebras.ai/v1 /tmp/hermes-cerebras-usage.json
+            status=$?
+            if [ $status -eq 0 ] && jq -e '.failed != true and .completed == true' /tmp/hermes-cerebras-usage.json >/dev/null 2>&1; then
+              cp /tmp/hermes-cerebras-usage.json /tmp/hermes-usage.json
+              exit 0
+            fi
+            echo "Cerebras attempt failed; trying OpenRouter only if configured."
           fi
 
           if [ -n "$OPENROUTER_API_KEY" ]; then
