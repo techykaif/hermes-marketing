@@ -24,6 +24,10 @@ You do not need to configure `HERMES_INFERENCE_MODEL` anymore; the workflow pins
 
 `PRODUCT_REPO_READ_TOKEN` remains required for read-only cloning of the private Keanso and AI-Bid repositories.
 
+### Publishing secret — intentionally separate
+
+`POSTIZ_API_KEY` is **not** required by the research workflows. When publishing is enabled, it must be available only to the dedicated publishing workflow/environment. See `integrations/postiz/README.md`.
+
 ## Provider/model policy
 
 Primary:
@@ -67,25 +71,35 @@ The agent writes intelligence into the repository under:
 - `reports/daily/`
 - `reports/weekly/`
 - `reports/latest/`
+- `reports/drafts/`
 - `state/`
 
 The workflow commits changed intelligence files back to `main` using the workflow's GitHub token.
 
-## Security boundary
+## Execution and measurement boundaries
 
-The workflow has write access only to repository contents because it must persist reports. It does not receive social credentials or payment credentials.
+The current system now has:
 
-Do not add platform credentials until the research/strategy loop has been verified.
+- a dedicated Postiz integration boundary
+- an R0-R4 channel risk/approval policy
+- an analytics normalization contract
+- UTM/campaign attribution rules
+- publishing state and external-action audit schemas
+- a draft handoff contract separating content generation from publication
 
-## Next integration stage
+Postiz currently remains **disabled/draft-only**. The research workflows do not receive publishing credentials.
 
-After the intelligence loop is proven:
+## Activation gates for publishing
 
-1. add persistent analytics sources
-2. add Postiz publishing integration
-3. create channel-specific approval policies
-4. add human approval for higher-risk actions
-5. enable limited autonomous publishing
-6. add attribution and performance feedback
+Before limited autonomous publishing is enabled, verify all of the following:
 
-Publishing should remain separate from research so a research failure cannot silently become an external marketing action.
+1. Postiz account and connected channels are configured.
+2. `POSTIZ_API_KEY` is stored as a protected Actions/environment secret.
+3. Integration IDs are configured as environment variables, not committed to reports.
+4. Draft validation and duplicate detection pass in a dry run.
+5. UTM/campaign attribution is present on every eligible outbound link.
+6. Approval records and external-action audit records are written successfully.
+7. Channel-specific platform policy is reviewed.
+8. A small scheduled test is verified end-to-end before widening autonomy.
+
+No publishing credential should be added to the Daily or Sunday research jobs.
