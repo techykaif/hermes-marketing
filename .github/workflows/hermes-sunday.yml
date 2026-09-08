@@ -30,7 +30,7 @@ env:
 
     Read before research:
     - hermes/policies/marketing-policy.md
-    - hermes/skills/sunday-mode.md
+    - hermes/policies/sunday-mode.md
     - hermes/skills/weekly-research/SKILL.md
     - hermes/research/SOURCES.md
     - brands/keanso/product.md
@@ -139,6 +139,36 @@ jobs:
         run: |
           source "$HOME/.bashrc" || true
           hermes -z "$HERMES_PROMPT" --provider openrouter --model "$HERMES_INFERENCE_MODEL" --usage-file /tmp/hermes-usage.json
+
+      - name: Validate Hermes result
+        run: |
+          if [ ! -s /tmp/hermes-usage.json ]; then
+            echo "Hermes did not produce a usage report."
+            exit 1
+          fi
+          cat /tmp/hermes-usage.json
+          if jq -e '.failed == true or .completed != true' /tmp/hermes-usage.json >/dev/null; then
+            echo "Hermes execution did not complete successfully."
+            exit 1
+          fi
+          required_reports=(
+            reports/latest/keanso.md
+            reports/latest/ai-bid.md
+            reports/latest/market.md
+            reports/latest/strategy.md
+            reports/latest/system.md
+            reports/weekly/$(date -u +%F).md
+          )
+          for report in "${required_reports[@]}"; do
+            if [ ! -s "$report" ]; then
+              echo "Expected weekly report is missing: $report"
+              exit 1
+            fi
+          done
+          if [ ! -s state/latest.json ]; then
+            echo "Expected state file is missing: state/latest.json"
+            exit 1
+          fi
 
       - name: Save usage report
         if: always()
