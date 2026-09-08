@@ -1,0 +1,276 @@
+{
+  "snapshot_date": "2026-09-08",
+  "products": {
+    "keanso": {
+      "production_url": "https://www.keanso.in",
+      "production_verified": true,
+      "repository": "https://github.com/techykaif/Keanso",
+      "last_repo_commit": "34fe30c Merge pull request #162 from techykaif/feat/account-self-service-auth",
+      "core_promise": "Get paid without chasing",
+      "launch_phase": "pre-launch — final reliability, admin verification, and testing phase preparation",
+      "launch_focus": [
+        "Admin dashboard action reliability",
+        "Billing as actionable Scheduled/Overdue payment queue",
+        "Invoices tab as complete invoice ledger",
+        "Payment claims cannot bypass invoice-state validation",
+        "Wall moderation end-to-end",
+        "Client deletion safe and lifecycle-aware",
+        "Final admin audit",
+        "Final testing phase",
+        "Resolve launch-blocking issues"
+      ],
+      "explicitly_deferred": [
+        "Invoice Void workflow",
+        "Stripe billing",
+        "Client portal/payment links",
+        "Expanded analytics",
+        "Non-critical feature expansion"
+      ],
+      "key_findings": [
+        {
+          "finding": "Production site live at keanso.in with clear positioning: 'Get paid without chasing' — invoice follow-up workspace for freelancers and small businesses",
+          "source": "https://www.keanso.in",
+          "source_type": "first_party",
+          "observed_at": "2026-09-08",
+          "confidence": "high",
+          "verification": "direct",
+          "impact": "high"
+        },
+        {
+          "finding": "About page confirms founder: Kaif Ansari, independent developer building from real freelancer problem",
+          "source": "https://www.keanso.in/about",
+          "source_type": "first_party",
+          "observed_at": "2026-09-08",
+          "confidence": "high",
+          "verification": "direct",
+          "impact": "medium"
+        },
+        {
+          "finding": "Product workflow: Send invoice → Let Keanso follow up → Keep every reply together → Payment claims reviewed by owner → Close loop on acceptance",
+          "source": "https://www.keanso.in",
+          "source_type": "first_party",
+          "observed_at": "2026-09-08",
+          "confidence": "high",
+          "verification": "direct",
+          "impact": "high"
+        },
+        {
+          "finding": "Launch blocked on reliability: admin actions, billing queue, payment state integrity, moderation, client deletion safety, final audit, production testing",
+          "source": "/tmp/keanso/README.md",
+          "source_type": "first_party",
+          "observed_at": "2026-09-08",
+          "confidence": "high",
+          "verification": "direct",
+          "impact": "high"
+        }
+      ],
+      "audience_pain_signals": [
+        "unpaid invoices",
+        "late payments",
+        "awkward payment follow-ups",
+        "manual invoice tracking",
+        "forgotten follow-ups",
+        "cash-flow pressure caused by slow-paying clients",
+        "time lost chasing clients"
+      ],
+      "competitors_mentioned": [
+        "FreshBooks",
+        "Zoho Invoice",
+        "Stripe Invoicing",
+        "Square Invoices",
+        "Wave",
+        "Invoice Ninja",
+        "Bonsai",
+        "Harvest",
+        "Xero",
+        "BigTime"
+      ]
+    },
+    "ai-bid": {
+      "production_url": "https://ai-bid.lol",
+      "production_verified": false,
+      "repository": "https://github.com/techykaif/aibid",
+      "last_repo_commit": "0a62d62 docs: record Next 16 lint migration",
+      "core_model": "pay-to-rank public leaderboard and discovery platform",
+      "launch_base_markets": ["AI", "Games"],
+      "launch_status": "pre-launch — AI launch-base acceptance in progress, Games required before complete launch-base acceptance",
+      "key_findings": [
+        {
+          "finding": "AI-Bid production domain ai-bid.lol not publicly accessible via search; no live site content found. Likely not deployed or under different domain.",
+          "source": "web search + web_extract",
+          "source_type": "first_party",
+          "observed_at": "2026-09-08",
+          "confidence": "medium",
+          "verification": "inferred",
+          "impact": "high"
+        },
+        {
+          "finding": "Implementation status shows extensive production verification: Firestore reads healthy, logo upload/read verified in production, payment trust boundaries tested, SEO sitemap/robots, public smoke tests passing",
+          "source": "/tmp/aibid/IMPLEMENTATION_STATUS.md",
+          "source_type": "first_party",
+          "observed_at": "2026-09-08",
+          "confidence": "high",
+          "verification": "direct",
+          "impact": "high"
+        },
+        {
+          "finding": "Launch-base scope: AI + Games are the initial launch base. Open Source and Music are post-launch expansion phases. AI is current focus; Games required before complete launch-base acceptance.",
+          "source": "/tmp/aibid/IMPLEMENTATION_STATUS.md",
+          "source_type": "first_party",
+          "observed_at": "2026-09-08",
+          "confidence": "high",
+          "verification": "direct",
+          "impact": "high"
+        },
+        {
+          "finding": "Payment trust model: client-side success not authoritative; product live + bid affects ranking only after verified webhook reconciliation. Dodo Payments as MoR for India + international. USD-denominated ranking.",
+          "source": "/tmp/aibid/IMPLEMENTATION_STATUS.md",
+          "source_type": "first_party",
+          "observed_at": "2026-09-08",
+          "confidence": "high",
+          "verification": "direct",
+          "impact": "high"
+        },
+        {
+          "finding": "All-time leaderboard, category boards, daily board (UTC reset), product pages, OG images, embeddable badges, click tracking, stats, reporting/moderation, Dodo checkout + webhook, Firestore logos — all implemented and production-verified.",
+          "source": "/tmp/aibid/IMPLEMENTATION_STATUS.md",
+          "source_type": "first_party",
+          "observed_at": "2026-09-08",
+          "confidence": "high",
+          "verification": "direct",
+          "impact": "high"
+        },
+        {
+          "finding": "Production smoke suite verifies: homepage, public APIs, SEO endpoints, legal pages, JSON content types, absence of private email fields, invalid ID handling, AI/Games category routes, payment security boundaries (malformed checkout → 400, unsigned webhook → 401), IPv4-mapped loopback rejection.",
+          "source": "/tmp/aibid/IMPLEMENTATION_STATUS.md",
+          "source_type": "first_party",
+          "observed_at": "2026-09-08",
+          "confidence": "high",
+          "verification": "direct",
+          "impact": "high"
+        }
+      ],
+      "remaining_launch_requirements": [
+        "Verify production Dodo product configuration, webhook endpoint/signing secret, Adaptive Currency setting, payment behavior",
+        "Run integration/e2e coverage against Dodo test mode and Firebase emulator (duplicate/retry/failure paths)",
+        "Complete AI launch-base end-to-end journeys and runtime audit",
+        "Complete Games launch-base acceptance (taxonomy/navigation, submission flow, paid ranking, product pages, sharing, stats, click tracking, moderation, payment/security)",
+        "Run combined AI + Games E2E/security/payment/moderation/SEO/mobile/theme acceptance audit"
+      ],
+      "competitors": [
+        "outbid.lol (original, 1M+ visitors, $178K in 77h)",
+        "ToolScout AI leaderboard (pay-to-rank for AI tools)",
+        "AI Throne (AI startup leaderboard)",
+        "aistartups.lol",
+        "madbid.lol",
+        "bidtree.lol",
+        "outbidrank.com (232+ boards)",
+        "rankbid.lol",
+        "bidking.lol",
+        "vibewar.lol",
+        "linkforadollar.com",
+        "charitybid",
+        "LastSpot.lol (5% daily decay)",
+        "TimeBid.lol (time-based bidding)"
+      ],
+      "market_context": "Pay-to-rank leaderboard genre exploded August 2026 after outbid.lol viral launch. 170+ clones identified. Most clones failed due to lack of distribution, not mechanic. AI-focused boards (ToolScout, AI Throne) are direct competitors. Category focus + permanent product pages is AI-Bid's stated differentiator."
+    }
+  },
+  "market_changes": [
+    {
+      "finding": "Pay-to-rank leaderboard genre went viral August 2026 with outbid.lol (1.1M visitors in 2 days, $21K first 24h, $178K in 77h per founder reports). 170+ clones launched within days.",
+      "source": "https://relvehq.com/blog/noise/one-dollar-pay-to-rank-board-in-3-hours",
+      "source_type": "publication",
+      "observed_at": "2026-08-20",
+      "brand": "ai-bid",
+      "confidence": "medium",
+      "verification": "inferred",
+      "impact": "high"
+    },
+    {
+      "finding": "ToolScout launched pay-to-rank leaderboard for AI tools (minimum $2 entry), positioning as 'more respectable version' with 1000+ reviewed tools directory underneath.",
+      "source": "https://toolscout.ai/news/pay-to-rank-leaderboards",
+      "source_type": "competitor",
+      "observed_at": "2026-09-08",
+      "brand": "ai-bid",
+      "confidence": "high",
+      "verification": "direct",
+      "impact": "high"
+    },
+    {
+      "finding": "AI Throne launched AI-startup-only pay-to-rank board with lifetime totals, 12 live listings, top at $14.",
+      "source": "https://www.aithrone.lol/",
+      "source_type": "competitor",
+      "observed_at": "2026-09-08",
+      "brand": "ai-bid",
+      "confidence": "high",
+      "verification": "direct",
+      "impact": "medium"
+    },
+    {
+      "finding": "Freelancer late payment remains pervasive: Remote 2025 report 85% paid late at least sometimes; Bonsai analysis 29% invoices paid ≥1 day late. Automated reminders cited as key solution.",
+      "source": "https://nimblelancer.com/invoice-automation/",
+      "source_type": "publication",
+      "observed_at": "2026-09-08",
+      "brand": "keanso",
+      "confidence": "medium",
+      "verification": "inferred",
+      "impact": "high"
+    }
+  ],
+  "system_health": {
+    "cron_jobs": {
+      "sunday_intelligence": {
+        "schedule": "0 5 * * 0 (05:00 UTC Sundays)",
+        "workflow_file": ".github/workflows/hermes-sunday.yml",
+        "status": "configured"
+      },
+      "daily_marketing": {
+        "schedule": "30 3 * * 1-6 (03:30 UTC Mon-Sat)",
+        "workflow_file": ".github/workflows/hermes-daily.yml",
+        "status": "configured"
+      }
+    },
+    "repository_health": {
+      "marketing_repo": "hermes-marketing",
+      "reports_dir_exists": true,
+      "state_dir_exists": true,
+      "previous_reports": false,
+      "note": "First Sunday run — no prior intelligence snapshots found"
+    },
+    "automation_config": {
+      "openrouter_key": "required (secret)",
+      "product_repo_read_token": "required (secret)",
+      "inference_model": "required (variable)",
+      "hermes_config": "bounded CI profile with disabled toolsets (browser, vision, video, image_gen, tts, messaging, spotify, discord, homeassistant, cronjob, delegation, code_execution, memory, session_search, todo, clarify)"
+    }
+  },
+  "unresolved_questions": [
+    "Is ai-bid.lol deployed and accessible? Production domain returns no content in search.",
+    "What is the actual deployed URL for AI-Bid if not ai-bid.lol?",
+    "Keanso launch timeline — when is final testing phase targeting launch?",
+    "Current Keanso production deployment status — is it live to users or still staging?",
+    "AI-Bid Games market taxonomy — what are the specific game categories planned?",
+    "Dodo Payments production configuration for AI-Bid — webhook endpoint, signing secret, Adaptive Currency settings verified?"
+  ],
+  "strategy_priorities": [
+    {
+      "priority": 1,
+      "product": "keanso",
+      "objective": "Validate production readiness for launch",
+      "focus": "Complete final testing phase, resolve launch-blocking issues, verify admin actions in production"
+    },
+    {
+      "priority": 2,
+      "product": "ai-bid",
+      "objective": "Complete AI launch-base acceptance and verify production deployment",
+      "focus": "Run Dodo test-mode integration, complete AI E2E journeys, verify production smoke, then proceed to Games market"
+    },
+    {
+      "priority": 3,
+      "product": "both",
+      "objective": "Establish baseline intelligence and reporting cadence",
+      "focus": "Create first weekly reports, set up state tracking, ensure cron automation is healthy"
+    }
+  ]
+}
