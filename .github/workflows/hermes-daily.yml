@@ -87,15 +87,30 @@ jobs:
           gh repo clone techykaif/Keanso /tmp/keanso -- --depth 1
           gh repo clone techykaif/aibid /tmp/aibid -- --depth 1
 
-      - name: Install Hermes Agent
+      - name: Restore Hermes Agent installation cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.hermes/hermes-agent
+            ~/.hermes/tools
+            ~/.local/bin/hermes
+          key: hermes-agent-${{ runner.os }}-v1
+
+      - name: Install Hermes Agent if cache is cold
         run: |
-          curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
-          source "$HOME/.bashrc" || true
+          if [ -x "$HOME/.hermes/hermes-agent/venv/bin/hermes" ]; then
+            echo "Using cached Hermes Agent installation."
+          else
+            echo "Hermes cache miss; installing Hermes Agent."
+            curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
+          fi
+          export PATH="$HOME/.local/bin:$PATH"
           command -v hermes
           hermes --version
 
       - name: Configure native Hermes provider fallback chain
         run: |
+          export PATH="$HOME/.local/bin:$PATH"
           cat > "$HOME/.hermes/config.yaml" <<'YAML'
           agent:
             max_turns: 12
@@ -133,7 +148,7 @@ jobs:
 
       - name: Run daily intelligence
         run: |
-          source "$HOME/.bashrc" || true
+          export PATH="$HOME/.local/bin:$PATH"
           rm -f /tmp/hermes-usage.json
           hermes -z "$HERMES_PROMPT" --usage-file /tmp/hermes-usage.json
 
