@@ -119,11 +119,13 @@ jobs:
               - todo
               - clarify
           model:
-            provider: cerebras
+            provider: custom
             default: gpt-oss-120b
+            base_url: https://api.cerebras.ai/v1
+            key_env: CEREBRAS_API_KEY
           fallback_providers:
             - provider: opencode-free
-              model: auto
+              model: deepseek-v4-flash-free
             - provider: openrouter
               model: openrouter/free
           YAML
