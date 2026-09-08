@@ -18,6 +18,39 @@ env:
   HERMES_INFERENCE_MODEL: ${{ vars.HERMES_INFERENCE_MODEL }}
   HERMES_WRITE_SAFE_ROOT: ${{ github.workspace }}
   HERMES_REDACT_SECRETS: 'true'
+  HERMES_PROMPT: |
+    You are the autonomous marketing intelligence operator for the repository you are currently working in.
+
+    MODE: DAILY
+
+    Primary workspace: the current checkout.
+    Current product repositories:
+    - /tmp/keanso
+    - /tmp/aibid
+
+    Read the workspace policy and brand knowledge before doing anything else:
+    - hermes/policies/marketing-policy.md
+    - hermes/skills/weekly-research/SKILL.md
+    - hermes/skills/daily-operations/SKILL.md
+    - hermes/research/SOURCES.md
+    - brands/keanso/product.md
+    - brands/keanso/audience.md
+    - brands/ai-bid/product.md
+    - brands/ai-bid/audience.md
+
+    Task:
+    1. Inspect the latest strategy and previous execution reports if they exist.
+    2. Verify any product facts needed for today's work against the current repositories and public production sites.
+    3. Perform focused market/community research only where it can change today's decision.
+    4. Produce safe, channel-specific draft content or execution plans for the highest-priority opportunities.
+    5. Do NOT publish, like, follow, comment, reply, DM, submit directories, or spend money. This run is planning/drafting only until publishing integrations are explicitly enabled.
+    6. Write the daily report to reports/daily/YYYY-MM-DD.md using today's date.
+    7. If useful, update reports/latest/strategy.md, but never delete historical evidence.
+    8. Write a compact machine-readable state file to state/latest.json.
+    9. Include source URLs and confidence for material findings.
+    10. Never invent metrics, customers, testimonials, features, or outcomes.
+
+    Keep the run bounded and useful. Do not spend time on generic SEO content or low-value research. If no safe action is justified, write NO_EXECUTABLE_ACTIONS with the reason.
 
 jobs:
   research-and-plan:
@@ -56,41 +89,7 @@ jobs:
       - name: Run bounded daily intelligence
         run: |
           source "$HOME/.bashrc" || true
-          hermes -z "$(cat <<'PROMPT'
-You are the autonomous marketing intelligence operator for the repository you are currently working in.
-
-MODE: DAILY
-
-Primary workspace: the current checkout.
-Current product repositories:
-- /tmp/keanso
-- /tmp/aibid
-
-Read the workspace policy and brand knowledge before doing anything else:
-- hermes/policies/marketing-policy.md
-- hermes/skills/weekly-research/SKILL.md
-- hermes/skills/daily-operations/SKILL.md
-- hermes/research/SOURCES.md
-- brands/keanso/product.md
-- brands/keanso/audience.md
-- brands/ai-bid/product.md
-- brands/ai-bid/audience.md
-
-Task:
-1. Inspect the latest strategy and previous execution reports if they exist.
-2. Verify any product facts needed for today's work against the current repositories and public production sites.
-3. Perform focused market/community research only where it can change today's decision.
-4. Produce safe, channel-specific draft content or execution plans for the highest-priority opportunities.
-5. Do NOT publish, like, follow, comment, reply, DM, submit directories, or spend money. This run is planning/drafting only until publishing integrations are explicitly enabled.
-6. Write the daily report to reports/daily/YYYY-MM-DD.md using today's date.
-7. If useful, update reports/latest/strategy.md, but never delete historical evidence.
-8. Write a compact machine-readable state file to state/latest.json.
-9. Include source URLs and confidence for material findings.
-10. Never invent metrics, customers, testimonials, features, or outcomes.
-
-Keep the run bounded and useful. Do not spend time on generic SEO content or low-value research. If no safe action is justified, write NO_EXECUTABLE_ACTIONS with the reason.
-PROMPT
-)" --provider openrouter --model "$HERMES_INFERENCE_MODEL" --usage-file /tmp/hermes-usage.json
+          hermes -z "$HERMES_PROMPT" --provider openrouter --model "$HERMES_INFERENCE_MODEL" --usage-file /tmp/hermes-usage.json
 
       - name: Save usage report
         if: always()
