@@ -28,17 +28,19 @@ You do not need to configure `HERMES_INFERENCE_MODEL` anymore; the workflow pins
 
 Primary:
 
-- Cerebras `gpt-oss-120b`
+- Cerebras custom OpenAI-compatible endpoint `gpt-oss-120b`
+- Endpoint: `https://api.cerebras.ai/v1`
 
 Fallback 1:
 
-- OpenCode Free — `auto` (Hermes uses OpenCode's live free-model catalog)
+- OpenCode Free `deepseek-v4-flash-free`
+- Keyless; Hermes can refresh the OpenCode Free catalog as models rotate
 
 Fallback 2:
 
 - OpenRouter `openrouter/free`
 
-Cerebras documents GPT-OSS 120B as supporting function calling, structured outputs, tools, reasoning, and agentic research workflows. OpenCode Free is keyless and its model catalog is refreshed dynamically by Hermes, allowing free-model promotions to rotate without a workflow code change. urlCerebras GPT-OSS 120B model documentationhttps://inference-docs.cerebras.ai/api-reference/models/public-models urlHermes provider documentationhttps://hermes-agent.nousresearch.com/docs/integrations/providers
+Cerebras documents GPT-OSS 120B as supporting function calling, structured outputs, tools, reasoning, and agentic research workflows. Hermes' current OpenCode Free provider is keyless and dynamically refreshes its free-model catalog. urlCerebras GPT-OSS 120B model documentationhttps://inference-docs.cerebras.ai/api-reference/models/public-models urlHermes provider documentationhttps://hermes-agent.nousresearch.com/docs/integrations/providers
 
 The Hermes CI profile is deliberately bounded to reduce unnecessary agent turns: 12 turns for daily runs and 20 turns for Sunday intelligence. Native provider fallback preserves the conversation and continues from the failed turn instead of restarting the entire planning task.
 
