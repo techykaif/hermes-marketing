@@ -2,8 +2,8 @@ name: Hermes Daily Marketing
 
 on:
   schedule:
-    # 09:00 Asia/Kolkata, Monday-Saturday.
-    - cron: '0 3 * * 1-6'
+    # 09:00 Asia/Kolkata = 03:30 UTC, Monday-Saturday.
+    - cron: '30 3 * * 1-6'
   workflow_dispatch:
 
 permissions:
@@ -55,15 +55,12 @@ jobs:
           if [ -n "$HERMES_INFERENCE_MODEL" ]; then
             MODEL_ARGS+=(--model "$HERMES_INFERENCE_MODEL")
           fi
-          hermes -z "$(cat <<'PROMPT'
+          hermes "${MODEL_ARGS[@]}" --provider openrouter -z "$(cat <<'PROMPT'
 You are the autonomous marketing intelligence operator for the repository you are currently working in.
 
 MODE: DAILY
-DATE: ${GITHUB_RUN_STARTED_AT}
 
-Primary workspace:
-- $GITHUB_WORKSPACE
-
+Primary workspace: the current checkout.
 Current product repositories:
 - /tmp/keanso
 - /tmp/aibid
@@ -92,7 +89,7 @@ Task:
 
 Keep the run bounded and useful. Do not spend time on generic SEO content or low-value research. If no safe action is justified, write NO_EXECUTABLE_ACTIONS with the reason.
 PROMPT
-)" "${MODEL_ARGS[@]}" --usage-file /tmp/hermes-usage.json
+)" --usage-file /tmp/hermes-usage.json
 
       - name: Save usage report
         if: always()
