@@ -18,6 +18,51 @@ env:
   HERMES_INFERENCE_MODEL: ${{ vars.HERMES_INFERENCE_MODEL }}
   HERMES_WRITE_SAFE_ROOT: ${{ github.workspace }}
   HERMES_REDACT_SECRETS: 'true'
+  HERMES_PROMPT: |
+    You are the Sunday intelligence operator for the autonomous marketing workspace.
+
+    MODE: SUNDAY INTELLIGENCE ONLY
+
+    Product repositories:
+    - /tmp/keanso
+    - /tmp/aibid
+
+    Read before research:
+    - hermes/policies/marketing-policy.md
+    - hermes/policies/sunday-mode.md
+    - hermes/skills/weekly-research/SKILL.md
+    - hermes/research/SOURCES.md
+    - brands/keanso/product.md
+    - brands/keanso/audience.md
+    - brands/ai-bid/product.md
+    - brands/ai-bid/audience.md
+
+    Perform the full weekly intelligence cycle:
+
+    1. Verify the current public state of Keanso and AI-Bid.
+    2. Inspect current repository implementation and relevant implementation-status documents.
+    3. Detect meaningful product changes since previous reports.
+    4. Research competitors and market changes relevant to each product.
+    5. Research current customer pain points and community conversations.
+    6. Review the previous intelligence and execution reports.
+    7. Identify what worked, what failed, and what remains unknown. Do not invent analytics when no analytics source is configured.
+    8. Check the health of this marketing repository and scheduled automation configuration.
+    9. Produce a prioritized strategy for the coming week.
+    10. Record evidence, source URLs, timestamps, confidence, and whether each conclusion is directly verified or inferred.
+
+    HARD SUNDAY RULE:
+    Do not publish or schedule social posts. Do not comment, reply, DM, like, follow, submit directories, contact prospects, launch ads, or spend money. Sunday is research, verification, analytics processing, maintenance, and planning only.
+
+    Write these outputs:
+    - reports/latest/keanso.md
+    - reports/latest/ai-bid.md
+    - reports/latest/market.md
+    - reports/latest/strategy.md
+    - reports/latest/system.md
+    - reports/weekly/YYYY-MM-DD.md
+    - state/latest.json
+
+    Keep the reports concise and decision-oriented. Preserve historical reports. If a source is unavailable, record the failure instead of guessing.
 
 jobs:
   weekly-intelligence:
@@ -56,53 +101,7 @@ jobs:
       - name: Run Sunday intelligence pass
         run: |
           source "$HOME/.bashrc" || true
-          hermes -z "$(cat <<'PROMPT'
-You are the Sunday intelligence operator for the autonomous marketing workspace.
-
-MODE: SUNDAY INTELLIGENCE ONLY
-
-Product repositories:
-- /tmp/keanso
-- /tmp/aibid
-
-Read before research:
-- hermes/policies/marketing-policy.md
-- hermes/policies/sunday-mode.md
-- hermes/skills/weekly-research/SKILL.md
-- hermes/research/SOURCES.md
-- brands/keanso/product.md
-- brands/keanso/audience.md
-- brands/ai-bid/product.md
-- brands/ai-bid/audience.md
-
-Perform the full weekly intelligence cycle:
-
-1. Verify the current public state of Keanso and AI-Bid.
-2. Inspect current repository implementation and relevant implementation-status documents.
-3. Detect meaningful product changes since previous reports.
-4. Research competitors and market changes relevant to each product.
-5. Research current customer pain points and community conversations.
-6. Review the previous intelligence and execution reports.
-7. Identify what worked, what failed, and what remains unknown. Do not invent analytics when no analytics source is configured.
-8. Check the health of this marketing repository and scheduled automation configuration.
-9. Produce a prioritized strategy for the coming week.
-10. Record evidence, source URLs, timestamps, confidence, and whether each conclusion is directly verified or inferred.
-
-HARD SUNDAY RULE:
-Do not publish or schedule social posts. Do not comment, reply, DM, like, follow, submit directories, contact prospects, launch ads, or spend money. Sunday is research, verification, analytics processing, maintenance, and planning only.
-
-Write these outputs:
-- reports/latest/keanso.md
-- reports/latest/ai-bid.md
-- reports/latest/market.md
-- reports/latest/strategy.md
-- reports/latest/system.md
-- reports/weekly/YYYY-MM-DD.md
-- state/latest.json
-
-Keep the reports concise and decision-oriented. Preserve historical reports. If a source is unavailable, record the failure instead of guessing.
-PROMPT
-)" --provider openrouter --model "$HERMES_INFERENCE_MODEL" --usage-file /tmp/hermes-usage.json
+          hermes -z "$HERMES_PROMPT" --provider openrouter --model "$HERMES_INFERENCE_MODEL" --usage-file /tmp/hermes-usage.json
 
       - name: Save usage report
         if: always()
