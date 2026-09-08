@@ -38,18 +38,16 @@ env:
     - brands/ai-bid/product.md
     - brands/ai-bid/audience.md
 
-    Perform the full weekly intelligence cycle:
-
+    Perform the weekly intelligence cycle, but keep it decision-oriented:
     1. Verify the current public state of Keanso and AI-Bid.
     2. Inspect current repository implementation and relevant implementation-status documents.
     3. Detect meaningful product changes since previous reports.
-    4. Research competitors and market changes relevant to each product.
-    5. Research current customer pain points and community conversations.
-    6. Review the previous intelligence and execution reports.
-    7. Identify what worked, what failed, and what remains unknown. Do not invent analytics when no analytics source is configured.
-    8. Check the health of this marketing repository and scheduled automation configuration.
-    9. Produce a prioritized strategy for the coming week.
-    10. Record evidence, source URLs, timestamps, confidence, and whether each conclusion is directly verified or inferred.
+    4. Research only the most relevant competitor, market, and customer-pain changes.
+    5. Review previous intelligence and execution reports.
+    6. Identify what worked, what failed, and what remains unknown. Never invent analytics.
+    7. Check the health of this marketing repository and scheduled automation configuration.
+    8. Produce a prioritized strategy for the coming week.
+    9. Record evidence, source URLs, timestamps, confidence, and whether each conclusion is verified or inferred.
 
     HARD SUNDAY RULE:
     Do not publish or schedule social posts. Do not comment, reply, DM, like, follow, submit directories, contact prospects, launch ads, or spend money. Sunday is research, verification, analytics processing, maintenance, and planning only.
@@ -63,7 +61,12 @@ env:
     - reports/weekly/YYYY-MM-DD.md
     - state/latest.json
 
-    Keep the reports concise and decision-oriented. Preserve historical reports. If a source is unavailable, record the failure instead of guessing.
+    RUNTIME DISCIPLINE:
+    - Use a small number of deliberate research passes; do not wander.
+    - Prefer repository inspection and high-value web search/extraction over browser automation.
+    - Stop researching once the weekly strategy is defensible.
+    - Produce the reports even if optional sources fail.
+    - Preserve historical reports and never guess when a source is unavailable.
 
 jobs:
   weekly-intelligence:
@@ -104,6 +107,33 @@ jobs:
           source "$HOME/.bashrc" || true
           command -v hermes
           hermes --version
+
+      - name: Configure bounded CI profile
+        run: |
+          cat > "$HOME/.hermes/config.yaml" <<'YAML'
+          agent:
+            max_turns: 36
+            run_budget_seconds: 1800
+            disabled_toolsets:
+              - browser
+              - vision
+              - video
+              - image_gen
+              - tts
+              - messaging
+              - spotify
+              - discord
+              - discord_admin
+              - homeassistant
+              - cronjob
+              - delegation
+              - code_execution
+              - memory
+              - session_search
+              - todo
+              - clarify
+          YAML
+          hermes config check
 
       - name: Run Sunday intelligence pass
         run: |
